@@ -1,0 +1,97 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model ToolItem {
+  id        String   @id @default(uuid())
+  customId  String   @unique
+  name      String
+  category  String
+  image     String
+  status    String
+  location  String
+  condition String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TransactionLog {
+  id        String   @id @default(uuid())
+  toolId    String?
+  image     String
+  asset     String
+  action    String
+  status    String
+  proj      String
+  user      String
+  time      String   // Temporary string to match mock, but should be DateTime in real prod
+  createdAt DateTime @default(now())
+}
+
+model SystemSettings {
+  id               String   @id @default("global")
+  companyName      String   @default("Loenbro Tool Hub")
+  primaryColor     String   @default("#FF6B00")
+  secondaryColor   String   @default("#13406A")
+  logoUrl          String   @default("/loenbro-logo.png")
+  ssoProvider      String   @default("microsoft")
+  ssoClientId      String   @default("")
+  ssoDomain        String   @default("")
+  ssoEnabled       Boolean  @default(false)
+  updatedAt        DateTime @updatedAt
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?
+  access_token       String?
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          String    @default("Field User")
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
